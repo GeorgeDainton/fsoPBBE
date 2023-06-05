@@ -1,7 +1,14 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
 
 app.use(express.json())
+
+morgan.token('body', (req, res) => {
+  return JSON.stringify(req.body)
+})
+
+app.use(morgan(':method :url :status :res[content-length] :response-time :body'))
 
 let persons = [
   { 
@@ -30,7 +37,9 @@ const generateId = () => {
   const maxId = persons.length > 0
     ? Math.max(...persons.map(person => person.id))
     : 0
+    return maxId + 1
 }
+
 
 app.get('/', (req, res) => {
   res.send('<h1>Nothing to see here<h1>')
