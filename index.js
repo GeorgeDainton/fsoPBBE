@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
   { 
     "id": 1,
@@ -24,6 +26,12 @@ let persons = [
   }
 ]
 
+const generateId = () => {
+  const maxId = persons.length > 0
+    ? Math.max(...persons.map(person => person.id))
+    : 0
+}
+
 app.get('/', (req, res) => {
   res.send('<h1>Nothing to see here<h1>')
 })
@@ -40,6 +48,26 @@ app.get('/persons/:id', (req, res) => {
   const id = Number(req.params.id)
   const person = persons.find(person => person.id === id)
   res.send(person)
+})
+
+app.post('/persons', (req, res) => {
+  const body = req.body
+
+  if (!body.name || !body.number) {
+    res.status(404).send('Missing content')
+  } else if (persons.find(person => person.name === body.name)){
+    res.status(404).send('Name already exists')
+  } else {
+    const person = {
+      id: generateId(),
+      name: body.name,
+      number: body.number
+    }
+  
+    persons = persons.concat(person)
+  
+    res.send(person)
+  }
 })
 
 app.delete('/persons/:id', (req, res) => {
