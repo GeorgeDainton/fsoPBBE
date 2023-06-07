@@ -1,10 +1,14 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
 
 app.use(express.json())
+app.use(express.static('build'))
+app.use(cors())
 
-morgan.token('body', (req, res) => {
+
+morgan.token('body', (req) => {
   return JSON.stringify(req.body)
 })
 
@@ -45,21 +49,21 @@ app.get('/', (req, res) => {
   res.send('<h1>Nothing to see here<h1>')
 })
 
-app.get('/persons', (req, res) => {
+app.get('/api/persons', (req, res) => {
   res.send(persons)
 })
 
-app.get('/info', (req, res) => {
+app.get('/api/info', (req, res) => {
   res.send(`<p>Phonebook has info for ${persons.length} people</p><br>${Date()}`)
 })
 
-app.get('/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id)
   const person = persons.find(person => person.id === id)
   res.send(person)
 })
 
-app.post('/persons', (req, res) => {
+app.post('/api/persons', (req, res) => {
   const body = req.body
 
   if (!body.name || !body.number) {
@@ -79,12 +83,13 @@ app.post('/persons', (req, res) => {
   }
 })
 
-app.delete('/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id)
   persons = persons.filter(person => person.id !== id)
   res.status(204).end()
 })
 
-const PORT = 3001
-app.listen(PORT)
-console.log(`Listening on port ${PORT}`);
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`)
+})
