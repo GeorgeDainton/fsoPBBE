@@ -24,12 +24,6 @@ const generateId = () => {
     return maxId + 1
 }
 
-// app.get('/api/persons', (req, res) => {
-//   Person.find({}).then(phonebook => {
-//     res.json(phonebook)
-//   })
-// })
-
 app.get('/api/persons', (req, res) => {
   Person.find({}).then(contacts => {
     res.json(contacts)
@@ -37,8 +31,9 @@ app.get('/api/persons', (req, res) => {
 })
 
 
-app.get('/api/info', (req, res) => {
-  res.send(`<p>Phonebook has info for ${persons.length} people</p><br>${Date()}`)
+app.get('/api/info', async (req, res) => {
+  const contacts = await Person.find({})
+  res.send(`<p>Phonebook has info for ${contacts.length} people</p><br>${Date()}`)
 })
 
 app.get('/api/persons/:id', (req, res) => {
@@ -52,19 +47,19 @@ app.post('/api/persons', (req, res) => {
 
   if (!body.name || !body.number) {
     res.status(404).send('Missing content')
-  } else if (persons.find(person => person.name === body.name)){
-    res.status(404).send('Name already exists')
-  } else {
-    const person = {
-      id: generateId(),
-      name: body.name,
-      number: body.number
-    }
-  
-    persons = persons.concat(person)
-  
-    res.send(person)
+  // } else if (persons.find(person => person.name === body.name)){
+  //   res.status(404).send('Name already exists')
   }
+
+  const person = new Person({
+    name: body.name,
+    number: body.number
+  })
+
+  person.save().then(savedPerson => {
+    res.json(savedPerson)
+  })
+    
 })
 
 app.delete('/api/persons/:id', (req, res) => {
