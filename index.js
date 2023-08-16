@@ -17,13 +17,6 @@ morgan.token('body', (req) => {
 app.use(morgan(':method :url :status :res[content-length] :response-time :body'))
 
 
-const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(person => person.id))
-    : 0
-    return maxId + 1
-}
-
 app.get('/api/persons', (req, res) => {
   Person.find({}).then(contacts => {
     res.json(contacts)
@@ -36,19 +29,23 @@ app.get('/api/info', async (req, res) => {
   res.send(`<p>Phonebook has info for ${contacts.length} people</p><br>${Date()}`)
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id === id)
-  res.send(person)
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      if(person) {
+        res.json(person)
+      } else {
+        res.status(404).send('Not found')
+      }
+    })
+    .catch(err => next(err))
 })
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
 
   if (!body.name || !body.number) {
-    res.status(404).send('Missing content')
-  // } else if (persons.find(person => person.name === body.name)){
-  //   res.status(404).send('Name already exists')
+    return res.status(404).send('Missing content')
   }
 
   const person = new Person({
@@ -62,10 +59,33 @@ app.post('/api/persons', (req, res) => {
     
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  persons = persons.filter(person => person.id !== id)
-  res.status(204).end()
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body
+
+  if(!body.name || !body.number) {
+    res.status(404).send('MISSING DATA')
+  }
+
+  const person = {
+    name: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true
+  })
+  .then((updatedPerson) => {
+    res.json(updatedPerson.toJSON())
+  })
+  .catch(err => (next(err)))
+})
+
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+  .then(result => {
+    res.status(204).end()
+  })
+  .catch(err => next(err))
 })
 
 const PORT = process.env.PORT || 3001
