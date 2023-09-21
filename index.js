@@ -41,11 +41,11 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch(err => next(err))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body
 
   if (!body.name || !body.number) {
-    return res.status(404).send('Missing content')
+    return res.json('Missing content')
   }
 
   const person = new Person({
@@ -56,14 +56,14 @@ app.post('/api/persons', (req, res) => {
   person.save().then(savedPerson => {
     res.json(savedPerson)
   })
-    
+  .catch(err => next(err))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
   const body = req.body
 
   if(!body.name || !body.number) {
-    res.status(404).send('MISSING DATA')
+    return res.status(404).send('MISSING DATA')
   }
 
   const person = {
