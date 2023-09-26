@@ -44,9 +44,9 @@ app.get('/api/persons/:id', (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
 
-  if (!body.name || !body.number) {
-    return res.json('Missing content')
-  }
+  // if (!body.name || !body.number) {
+  //   return res.status(400).json({ error: 'Missing content' })
+  // }
 
   const person = new Person({
     name: body.name,
@@ -62,9 +62,9 @@ app.post('/api/persons', (req, res, next) => {
 app.put('/api/persons/:id', (req, res, next) => {
   const body = req.body
 
-  if(!body.name || !body.number) {
-    return res.status(404).send('MISSING DATA')
-  }
+  // if(!body.name || !body.number) {
+  //   return res.status(404).send('MISSING DATA')
+  // }
 
   const person = {
     name: body.name,
@@ -87,6 +87,23 @@ app.delete('/api/persons/:id', (req, res, next) => {
   })
   .catch(err => next(err))
 })
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: 'Destination Unknown'})
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (err, req, res, next) => {
+  if (err.name === 'CastError') {
+    return res.status(400).send({ error: 'Malformatted ID' })
+  } else if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: err.message })
+  }
+  next(err)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
